@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: thelook
+    description: TheLook eCommerce public dataset, read in place (refreshed daily by Google).
+    database: bigquery-public-data
+    schema: thelook_ecommerce
+    tables:
+      - name: users
+      - name: orders
+      - name: order_items
+      - name: products
+      - name: events

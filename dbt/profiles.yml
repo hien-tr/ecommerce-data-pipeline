@@ -1,0 +1,25 @@
+# No secrets here: the key file path comes from DBT_GOOGLE_KEYFILE.
+# Locally it falls back to D:/secrets/dbt-runner.json; CI sets the env var.
+ecommerce:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      keyfile: "{{ env_var('DBT_GOOGLE_KEYFILE', 'D:/secrets/dbt-runner.json') }}"
+      project: ecommerce-data-pipeline-511223
+      dataset: dbt_dev
+      location: US
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive
+    prod:
+      type: bigquery
+      method: service-account
+      keyfile: "{{ env_var('DBT_GOOGLE_KEYFILE', 'D:/secrets/dbt-runner.json') }}"
+      project: ecommerce-data-pipeline-511223
+      dataset: dbt_prod
+      location: US
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive
