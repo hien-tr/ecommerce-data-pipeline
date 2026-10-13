@@ -62,6 +62,8 @@ models:
         data_tests:
           - unique
           - not_null
+      - name: product_name
+        description: Product name. Filled with 'Unknown product (<product_id>)' when the source name is missing.
       - name: product_cost
         description: Cost of the product to the business, in USD.
       - name: retail_price

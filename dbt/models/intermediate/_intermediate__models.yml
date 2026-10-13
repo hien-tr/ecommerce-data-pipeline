@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: int_order_items_enriched
+    description: >
+      One row per order item, joined to its product. Adds status flags
+      (is_cancelled, is_returned, is_complete) and item margin so marts can
+      apply a revenue definition without repeating the join.
+    columns:
+      - name: order_item_id
+        description: Primary key of the order item.
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Order this item belongs to.
+        data_tests:
+          - not_null
+      - name: product_name
+        description: Name of the product sold. Null would mean the product is missing from the catalogue.
+        data_tests:
+          - not_null
+      - name: is_cancelled
+        description: True when the item was cancelled before shipping.
+      - name: is_returned
+        description: True when the item was returned by the customer.
+      - name: is_complete
+        description: True when the item was delivered and not returned.
+      - name: sale_price
+        description: Price paid for the item, in USD.
+      - name: product_cost
+        description: Cost of the product to the business, in USD.
+      - name: item_margin
+        description: sale_price minus product_cost, in USD. Ignores status; marts decide which items count.

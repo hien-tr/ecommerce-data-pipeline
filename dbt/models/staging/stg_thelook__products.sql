@@ -5,7 +5,7 @@ with source as (
 renamed as (
     select
         id as product_id,
-        name as product_name,
+        coalesce(name, concat('Unknown product (', cast(id as string), ')')) as product_name,
         brand,
         category,
         department,

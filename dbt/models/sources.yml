@@ -10,4 +10,11 @@ sources:
       - name: orders
       - name: order_items
       - name: products
+        columns:
+          - name: name
+            description: Product name. A few products have no name in the source; staging fills them.
+            data_tests:
+              - not_null:
+                  config:
+                    severity: warn
       - name: events
