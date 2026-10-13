@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: >
+      One row per order from the TheLook online store, with revenue and margin
+      in USD. Use this table for any question about orders, revenue or margin.
+      When someone asks for "revenue" without more detail, use net_revenue.
+    columns:
+      - name: order_id
+        description: Primary key of the order.
+        data_tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: Customer who placed the order.
+      - name: order_status
+        description: >
+          Current status of the whole order (lowercase): processing, shipped,
+          complete, cancelled or returned. Items inside one order can have
+          different statuses, so revenue is calculated per item, not from this column.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['processing', 'shipped', 'complete', 'cancelled', 'returned']
+      - name: created_at
+        description: When the order was placed (UTC timestamp).
+      - name: order_date
+        description: Date the order was placed (UTC). Use this to group revenue by day, month or year.
+      - name: shipped_at
+        description: When the order was shipped (UTC). Null if not shipped yet.
+      - name: delivered_at
+        description: When the order was delivered (UTC). Null if not delivered yet.
+      - name: returned_at
+        description: When the order was returned (UTC). Null if not returned.
+      - name: item_count
+        description: Number of items in the order, counted from the order items.
+      - name: cancelled_item_count
+        description: Number of items in the order that were cancelled.
+      - name: returned_item_count
+        description: Number of items in the order that were returned.
+      - name: gross_revenue
+        description: >
+          Revenue in USD from all items that were not cancelled, including items
+          that were later returned. Use only when gross revenue is explicitly asked for.
+      - name: net_revenue
+        description: >
+          Revenue in USD from items that were neither cancelled nor returned.
+          This is the default meaning of "revenue" for this business.
+      - name: net_margin
+        description: >
+          net_revenue minus the cost of those same items, in USD. Use for
+          "margin" or "profit" questions.
