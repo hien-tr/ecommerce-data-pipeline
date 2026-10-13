@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: stg_thelook__orders
+    description: One row per order from TheLook, with cleaned names and lowercase status.
+    columns:
+      - name: order_id
+        description: Primary key of the order.
+        data_tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: Customer who placed the order.
+      - name: order_status
+        description: Current order status (lowercase).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['processing', 'shipped', 'complete', 'cancelled', 'returned']
+      - name: item_count
+        description: Number of items in the order, as reported by the source.
+      - name: created_at
+        description: When the order was placed (UTC).
+
+  - name: stg_thelook__order_items
+    description: One row per item in an order. sale_price is the price paid for that single item.
+    columns:
+      - name: order_item_id
+        description: Primary key of the order item.
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Order this item belongs to.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_thelook__orders')
+                field: order_id
+      - name: product_id
+        description: Product sold.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_thelook__products')
+                field: product_id
+      - name: item_status
+        description: Status of this item (lowercase). Items in one order can have different statuses.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['processing', 'shipped', 'complete', 'cancelled', 'returned']
+      - name: sale_price
+        description: Price paid for the item, in USD.
+
+  - name: stg_thelook__products
+    description: One row per product in the TheLook catalogue.
+    columns:
+      - name: product_id
+        description: Primary key of the product.
+        data_tests:
+          - unique
+          - not_null
+      - name: product_cost
+        description: Cost of the product to the business, in USD.
+      - name: retail_price
+        description: List price of the product, in USD.
