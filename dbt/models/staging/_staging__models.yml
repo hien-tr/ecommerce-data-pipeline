@@ -68,3 +68,116 @@ models:
         description: Cost of the product to the business, in USD.
       - name: retail_price
         description: List price of the product, in USD.
+
+  - name: stg_thelook__users
+    description: >
+      One row per customer from TheLook. TheLook is synthetic, but columns that would be
+      personal data in a real business are tagged contains_pii and kept out of marts.
+    columns:
+      - name: user_id
+        description: Primary key of the customer.
+        data_tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: Customer first name (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: last_name
+        description: Customer last name (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: email
+        description: Customer email address (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: age
+        description: Customer age in years.
+      - name: gender
+        description: Customer gender as reported by the source (F or M).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['F', 'M']
+      - name: street_address
+        description: Customer street address (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: postal_code
+        description: Customer postal code (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: latitude
+        description: Latitude of the customer's address (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: longitude
+        description: Longitude of the customer's address (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: user_geom
+        description: Geographic point of the customer's address (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: traffic_source
+        description: >
+          Channel that brought the customer to sign up (lowercase). Uses different values
+          from events.traffic_source, so channel mapping is needed for attribution.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['search', 'organic', 'facebook', 'email', 'display']
+      - name: created_at
+        description: When the customer signed up (UTC).
+
+  - name: stg_thelook__events
+    description: One row per website event (page view, cart, purchase and similar) from TheLook.
+    columns:
+      - name: event_id
+        description: Primary key of the event.
+        data_tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: Customer who triggered the event. Null for visitors who are not signed in.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_thelook__users')
+                field: user_id
+      - name: session_id
+        description: Website session the event belongs to.
+      - name: sequence_number
+        description: Position of the event within its session, starting at 1.
+      - name: event_type
+        description: Type of event, such as product view, cart or purchase.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['product', 'department', 'cart', 'purchase', 'cancel', 'home']
+      - name: traffic_source
+        description: Channel the session came from (lowercase).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['email', 'adwords', 'facebook', 'youtube', 'organic']
+      - name: ip_address
+        description: IP address of the visitor (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: postal_code
+        description: Postal code derived from the visitor's location (personal data).
+        config:
+          meta:
+            contains_pii: true
+      - name: created_at
+        description: When the event happened (UTC).
