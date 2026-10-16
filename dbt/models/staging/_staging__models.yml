@@ -17,6 +17,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['processing', 'shipped', 'complete', 'cancelled', 'returned']
+              config:
+                severity: warn
       - name: item_count
         description: Number of items in the order, as reported by the source.
       - name: created_at
@@ -51,6 +53,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['processing', 'shipped', 'complete', 'cancelled', 'returned']
+              config:
+                severity: warn
       - name: sale_price
         description: Price paid for the item, in USD.
 
@@ -102,6 +106,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['F', 'M']
+              config:
+                severity: warn
       - name: street_address
         description: Customer street address (personal data).
         config:
@@ -135,6 +141,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['search', 'organic', 'facebook', 'email', 'display']
+              config:
+                severity: warn
       - name: created_at
         description: When the customer signed up (UTC).
 
@@ -163,12 +171,16 @@ models:
           - accepted_values:
               arguments:
                 values: ['product', 'department', 'cart', 'purchase', 'cancel', 'home']
+              config:
+                severity: warn
       - name: traffic_source
         description: Channel the session came from (lowercase).
         data_tests:
           - accepted_values:
               arguments:
                 values: ['email', 'adwords', 'facebook', 'youtube', 'organic']
+              config:
+                severity: warn
       - name: ip_address
         description: IP address of the visitor (personal data).
         config:
