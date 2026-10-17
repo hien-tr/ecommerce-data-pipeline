@@ -4,6 +4,7 @@ import requests, os
 from google.cloud import bigquery
 from datetime import datetime, timezone
 
+# Must cover every ad spend date (generate_ad_spend.py starts on the same date).
 START_DATE = "2024-01-01"
 CURRENCIES = ["EUR", "GBP"]
 API_URL = "https://api.frankfurter.dev/v1"
@@ -21,6 +22,7 @@ def extract(start_date, currencies):
     return response.json()
 
 def to_rows(data, loaded_at):
+    # The API has no rates on weekends and ECB holidays; gaps are filled in dbt, not here.
     rows = []
     for rate_date, currencies in data["rates"].items():
         for currency, rate in currencies.items():
@@ -43,6 +45,7 @@ def load(rows):
         bigquery.SchemaField("rate", "FLOAT64"),
         bigquery.SchemaField("loaded_at", "TIMESTAMP")
     ],
+    # Full refresh: the table is small, so reruns replace it (no duplicates).
     write_disposition="WRITE_TRUNCATE"
     )
     job = client.load_table_from_json(rows, TABLE_ID,job_config=job_config)
@@ -53,6 +56,7 @@ def main():
     data = extract(START_DATE,CURRENCIES)
     loaded_at = datetime.now(timezone.utc).isoformat()
     rows = to_rows(data, loaded_at)
+    # WRITE_TRUNCATE would empty the table, so stop before loading.
     if not rows:
         raise RuntimeError("No rates returned from the API; table left unchanged.")
     loaded = load(rows)
