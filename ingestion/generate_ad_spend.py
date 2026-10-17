@@ -7,7 +7,6 @@ from datetime import date, datetime, timedelta, timezone
 from google.cloud import bigquery
 
 START_DATE = date(2024, 1, 1)
-END_DATE = date.today() - timedelta(days=1)
 YEARLY_GROWTH = 0.15
 SEED = 42
 KEY_FILE = os.environ.get("DBT_GOOGLE_KEYFILE", "D:/secrets/dbt-runner.json")
@@ -52,7 +51,8 @@ def generate_rows(loaded_at):
     # days only add numbers at the end and past days never change.
     random.seed(SEED)
     rows = []
-    for spend_date in all_dates(START_DATE, END_DATE):
+    end_date = date.today() - timedelta(days=1)
+    for spend_date in all_dates(START_DATE, end_date):
         for channel, currency in CHANNELS.items():
             noise = random.uniform(0.8, 1.2)
             weekday = WEEKDAY_FACTOR[spend_date.weekday()]
