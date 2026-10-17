@@ -2,6 +2,7 @@
 
 import requests, os
 from google.cloud import bigquery
+from datetime import datetime, timezone
 
 START_DATE = "2024-01-01"
 CURRENCIES = ["EUR", "GBP"]
@@ -12,14 +13,14 @@ TABLE_ID = f"{PROJECT}.raw.fx_rates"
 
 def extract(start_date, currencies):
     response = requests.get(
-        f"{API_URL}/{START_DATE}..",
+        f"{API_URL}/{start_date}..",
         params={"base": "USD", "symbols": ",".join(currencies)},
         timeout=30,
     )
     response.raise_for_status()
     return response.json()
 
-def to_rows(data):
+def to_rows(data, loaded_at):
     rows = []
     for rate_date, currencies in data["rates"].items():
         for currency, rate in currencies.items():
@@ -28,6 +29,7 @@ def to_rows(data):
                 "base_currency": data["base"],
                 "currency": currency,
                 "rate": rate,
+                "loaded_at": loaded_at
             })
     return rows
 
@@ -39,6 +41,7 @@ def load(rows):
         bigquery.SchemaField("base_currency", "STRING"),
         bigquery.SchemaField("currency", "STRING"),
         bigquery.SchemaField("rate", "FLOAT64"),
+        bigquery.SchemaField("loaded_at", "TIMESTAMP")
     ],
     write_disposition="WRITE_TRUNCATE"
     )
@@ -48,9 +51,12 @@ def load(rows):
 
 def main():
     data = extract(START_DATE,CURRENCIES)
-    rows = to_rows(data)
+    loaded_at = datetime.now(timezone.utc).isoformat()
+    rows = to_rows(data, loaded_at)
+    if not rows:
+        raise RuntimeError("No rates returned from the API; table left unchanged.")
     loaded = load(rows)
-    print(f"Loaded {loaded} rows into, {TABLE_ID}")
+    print(f"Loaded {loaded} rows into {TABLE_ID}")
 
 if __name__ == "__main__":
     main()
