@@ -4,8 +4,9 @@ import requests, os
 from google.cloud import bigquery
 from datetime import datetime, timezone
 
-# Must cover every ad spend date (generate_ad_spend.py starts on the same date).
-START_DATE = "2024-01-01"
+# Starts a month before the ad spend (2024-01-01), so the first spend days can carry
+# forward an earlier rate (1 January is an ECB holiday).
+START_DATE = "2023-12-01"
 CURRENCIES = ["EUR", "GBP"]
 API_URL = "https://api.frankfurter.dev/v1"
 KEY_FILE = os.environ.get("DBT_GOOGLE_KEYFILE", "D:/secrets/dbt-runner.json")

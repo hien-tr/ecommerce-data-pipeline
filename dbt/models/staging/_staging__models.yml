@@ -193,3 +193,75 @@ models:
             contains_pii: true
       - name: created_at
         description: When the event happened (UTC).
+
+  - name: stg_marketing__ad_spend
+    description: One row per day and paid channel. Spend is in the channel's billing currency (see currency).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - spend_date
+              - channel
+    columns:
+      - name: spend_date
+        description: Day the spend applies to.
+        data_tests:
+          - not_null
+      - name: channel
+        description: Paid marketing channel (lowercase), matching stg_thelook__users.traffic_source.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['search', 'facebook', 'display', 'email']
+              config:
+                severity: warn
+      - name: currency
+        description: Billing currency of the spend.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['USD', 'EUR', 'GBP']
+              config:
+                severity: warn
+      - name: spend
+        description: Ad spend in the billing currency (exact decimal). Convert to USD with the FX rates before comparing channels.
+        data_tests:
+          - not_null
+      - name: loaded_at
+        description: When the ingestion script loaded this row (UTC).
+
+  - name: stg_frankfurter__fx_rates
+    description: Daily USD exchange rates from the Frankfurter API (ECB reference rates). Working days only; gaps are filled in int_fx_rates_daily.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - rate_date
+              - currency
+    columns:
+      - name: rate_date
+        description: Day the rate is valid for (ECB working days only).
+        data_tests:
+          - not_null
+      - name: base_currency
+        description: Currency converted from (always USD).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['USD']
+              config:
+                severity: warn
+      - name: currency
+        description: Currency converted to.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['EUR', 'GBP']
+              config:
+                severity: warn
+      - name: rate
+        description: Units of currency per 1 USD.
+        data_tests:
+          - not_null
+      - name: loaded_at
+        description: When the ingestion script loaded this row (UTC).

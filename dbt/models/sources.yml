@@ -18,3 +18,21 @@ sources:
                   config:
                     severity: warn
       - name: events
+  - name: raw
+    description: Tables loaded by the Python ingestion scripts in ingestion/.
+    schema: raw
+    tables:
+      - name: fx_rates
+        description: Daily USD exchange rates from the Frankfurter API (ECB reference rates). Working days only.
+        config:
+          loaded_at_field: loaded_at
+          freshness:
+            warn_after: {count: 2, period: day}
+            error_after: {count: 4, period: day}
+      - name: ad_spend
+        description: Synthetic daily ad spend per channel, in each channel's billing currency.
+        config:
+          loaded_at_field: loaded_at
+          freshness:
+            warn_after: {count: 2, period: day}
+            error_after: {count: 4, period: day}
