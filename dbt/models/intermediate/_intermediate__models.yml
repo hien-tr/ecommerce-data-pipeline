@@ -32,3 +32,34 @@ models:
         description: Cost of the product to the business, in USD.
       - name: item_margin
         description: sale_price minus product_cost, in USD. Ignores status; marts decide which items count.
+
+  - name: int_fx_rates_daily
+    description: >
+      One USD exchange rate per calendar day and currency. Weekends and ECB holidays carry
+      forward the most recent published rate (is_carried_forward = true). Includes USD → USD = 1.0
+      so spend in any currency can be converted with the same join.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - rate_date
+              - currency
+    columns:
+      - name: rate_date
+        description: Calendar day the rate applies to (every day, including weekends).
+        data_tests:
+          - not_null
+      - name: currency
+        description: Currency converted to from USD.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['USD', 'EUR', 'GBP']
+              config:
+                severity: warn
+      - name: rate
+        description: Units of currency per 1 USD. Never null; divide an amount in this currency by rate to get USD.
+        data_tests:
+          - not_null
+      - name: is_carried_forward
+        description: True when no rate was published that day and the previous published rate is used.
