@@ -51,7 +51,8 @@ def generate_rows(loaded_at):
     # days only add numbers at the end and past days never change.
     random.seed(SEED)
     rows = []
-    end_date = date.today() - timedelta(days=1)
+    # UTC, the same clock BigQuery uses, so both sides agree on "yesterday".
+    end_date = datetime.now(timezone.utc).date() - timedelta(days=1)
     for spend_date in all_dates(START_DATE, end_date):
         for channel, currency in CHANNELS.items():
             noise = random.uniform(0.8, 1.2)
