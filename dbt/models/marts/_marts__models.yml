@@ -14,6 +14,11 @@ models:
           - not_null
       - name: user_id
         description: Customer who placed the order.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_thelook__users')
+                field: user_id
       - name: order_status
         description: >
           Current status of the whole order (lowercase): processing, shipped,
