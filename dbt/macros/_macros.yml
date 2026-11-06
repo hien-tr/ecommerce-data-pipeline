@@ -1,0 +1,18 @@
+version: 2
+
+macros:
+  - name: convert_to_usd
+    description: >
+      Converts an amount in another currency to USD, as NUMERIC with full precision
+      (round in marts, not here, so totals add up).
+      The rate must be units of that currency per 1 USD (as in int_fx_rates_daily),
+      so the amount is divided by the rate. A zero or missing rate returns NULL
+      instead of failing the model; int_fx_rates_daily tests that rates are above 0.
+      Example: {% raw %}{{ convert_to_usd('spend', 'rate') }}{% endraw %} as spend_usd
+    arguments:
+      - name: amount
+        type: numeric
+        description: Column or SQL expression with the amount in the original currency.
+      - name: rate
+        type: float64
+        description: Column or SQL expression with the units of currency per 1 USD for that day.

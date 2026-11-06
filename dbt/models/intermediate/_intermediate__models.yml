@@ -61,5 +61,9 @@ models:
         description: Units of currency per 1 USD. Never null; divide an amount in this currency by rate to get USD.
         data_tests:
           - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
       - name: is_carried_forward
         description: True when no rate was published that day and the previous published rate is used.
