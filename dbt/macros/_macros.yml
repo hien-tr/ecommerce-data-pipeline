@@ -3,10 +3,11 @@ version: 2
 macros:
   - name: convert_to_usd
     description: >
-      Converts an amount in another currency to USD, as NUMERIC rounded to 2 decimals.
+      Converts an amount in another currency to USD, as NUMERIC with full precision
+      (round in marts, not here, so totals add up).
       The rate must be units of that currency per 1 USD (as in int_fx_rates_daily),
       so the amount is divided by the rate. A zero or missing rate returns NULL
-      instead of failing the model, so add a not_null test on the result.
+      instead of failing the model; int_fx_rates_daily tests that rates are above 0.
       Example: {% raw %}{{ convert_to_usd('spend', 'rate') }}{% endraw %} as spend_usd
     arguments:
       - name: amount
