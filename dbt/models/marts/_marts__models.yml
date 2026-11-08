@@ -142,3 +142,52 @@ models:
           Date of the customer's first order that was not cancelled (UTC). Empty if the
           customer never placed such an order. A customer counts as new in the month of
           this date.
+
+  - name: mart_marketing_performance
+    description: >
+      One row per day and channel with ad spend, revenue, orders and new customers,
+      for the days that have ad spend data. Revenue and new customers are attributed to
+      the channel the customer signed up through (first touch). All measures are sums
+      or counts, so they can be added up to any period. Calculate ROAS as
+      sum(net_revenue) / sum(spend_usd) and CAC as sum(spend_usd) / sum(new_customers);
+      never average daily ratios. Organic has revenue but no spend.
+      This is calendar ROAS: revenue includes orders from customers acquired before the
+      period, so it overstates the return on that period's spend.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - date
+              - channel
+    columns:
+      - name: date
+        description: Day of the spend, orders and first orders (UTC).
+        data_tests:
+          - not_null
+      - name: channel
+        description: Sign-up channel (search, facebook, display, email, organic).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['search', 'facebook', 'display', 'email', 'organic']
+              config:
+                severity: warn
+      - name: spend_usd
+        description: Ad spend in USD that day, at full precision (round only for display). 0 for organic.
+        data_tests:
+          - not_null
+      - name: net_revenue
+        description: >
+          Net revenue in USD of that day's orders by customers who signed up through the
+          channel, at full precision (round only for display). Cancelled orders are excluded.
+        data_tests:
+          - not_null
+      - name: orders
+        description: Number of orders that day by customers from the channel, excluding cancelled orders.
+        data_tests:
+          - not_null
+      - name: new_customers
+        description: Customers from the channel whose first (not cancelled) order was that day.
+        data_tests:
+          - not_null
