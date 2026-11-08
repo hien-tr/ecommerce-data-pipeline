@@ -104,3 +104,29 @@ models:
         description: Spend converted to USD (spend ÷ rate), at full precision. Sum this column for total spend.
         data_tests:
           - not_null
+
+  - name: dim_customers
+    description: >
+      One row per customer of the TheLook online store, including customers who
+      never ordered. Use it to slice orders and spend by the channel that brought the
+      customer (first-touch attribution) and to find new customers. Contains no
+      personal data.
+    columns:
+      - name: user_id
+        description: Primary key of the customer.
+        data_tests:
+          - unique
+          - not_null
+      - name: channel
+        description: >
+          Channel that brought the customer to sign up (search, organic, facebook, email,
+          display). Revenue is attributed to this channel for all of the customer's orders.
+        data_tests:
+          - not_null
+      - name: signed_up_at
+        description: When the customer signed up (UTC).
+      - name: first_order_date
+        description: >
+          Date of the customer's first order that was not cancelled (UTC). Empty if the
+          customer never placed such an order. A customer counts as new in the month of
+          this date.
