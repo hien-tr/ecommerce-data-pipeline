@@ -63,7 +63,9 @@ models:
     description: >
       One row per day and paid marketing channel, with ad spend in the billing
       currency and in USD. Use spend_usd for any question about marketing spend.
-      Organic has no spend and is not in this table.
+      Organic has no spend and is not in this table, so models that compare spend
+      with revenue per channel must keep organic from the revenue side (for example
+      with a full outer join), otherwise organic revenue is lost.
     data_tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -76,15 +78,16 @@ models:
         data_tests:
           - not_null
       - name: channel
-        description: Paid marketing channel (search, facebook, display, email), matching the customers' sign-up channel.
-        data_tests:
-          - accepted_values:
-              arguments:
-                values: ['search', 'facebook', 'display', 'email']
-              config:
-                severity: warn
+        description: >
+          Paid marketing channel (search, facebook, display, email), matching the
+          customers' sign-up channel. Allowed values are tested in stg_marketing__ad_spend.
       - name: currency
         description: Billing currency of the spend (USD, EUR or GBP).
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('int_fx_rates_daily')
+                field: currency
       - name: spend
         description: >
           Spend in the billing currency. Do not sum across channels or currencies;
@@ -93,6 +96,10 @@ models:
         description: Units of the billing currency per 1 USD on spend_date, used to convert spend to USD.
         data_tests:
           - not_null
+      - name: is_rate_carried_forward
+        description: >
+          True when no rate was published on spend_date (weekend or ECB holiday) and the
+          most recent published rate was used instead.
       - name: spend_usd
         description: Spend converted to USD (spend ÷ rate), at full precision. Sum this column for total spend.
         data_tests:

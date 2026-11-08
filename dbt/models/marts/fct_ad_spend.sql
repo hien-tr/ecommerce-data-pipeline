@@ -13,6 +13,7 @@ final as (
         ad_spend.currency,
         ad_spend.spend,
         fx_rates.rate,
+        fx_rates.is_carried_forward as is_rate_carried_forward,
         {{ convert_to_usd('ad_spend.spend', 'fx_rates.rate') }} as spend_usd
     from ad_spend
     left join fx_rates

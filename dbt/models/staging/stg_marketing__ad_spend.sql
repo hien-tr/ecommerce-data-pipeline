@@ -6,7 +6,7 @@ renamed as (
     select
         spend_date,
         lower(channel) as channel,
-        currency,
+        upper(trim(currency)) as currency,
         spend,
         loaded_at
     from source
