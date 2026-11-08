@@ -168,14 +168,19 @@ models:
         description: Sign-up channel (search, facebook, display, email, organic).
         data_tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: ['search', 'facebook', 'display', 'email', 'organic']
+              config:
+                severity: warn
       - name: spend_usd
-        description: Ad spend in USD that day, rounded to cents. 0 for organic.
+        description: Ad spend in USD that day, at full precision (round only for display). 0 for organic.
         data_tests:
           - not_null
       - name: net_revenue
         description: >
           Net revenue in USD of that day's orders by customers who signed up through the
-          channel, rounded to cents. Cancelled orders are excluded.
+          channel, at full precision (round only for display). Cancelled orders are excluded.
         data_tests:
           - not_null
       - name: orders

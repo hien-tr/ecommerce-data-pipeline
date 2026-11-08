@@ -84,8 +84,8 @@ Also used by Sales: fct_order_items (see Operations) for revenue, margin and ret
         - new_customers: customers whose first order was that day
     - KPIs, calculated in Looker from the sums (never stored or averaged per day):
         - Ad spend = sum(spend_usd)
-        - ROAS = sum(net_revenue) ÷ sum(spend_usd) (empty for organic)
-        - CAC = sum(spend_usd) ÷ sum(new_customers) (empty for organic)
+        - ROAS = sum(net_revenue) ÷ sum(spend_usd) (no value for organic, which has no spend)
+        - CAC = sum(spend_usd) ÷ sum(new_customers): show only for paid channels (spend > 0); for organic the formula gives 0, which reads as free customers
         - New customers = sum(new_customers)
     - Limitation: calendar ROAS. Revenue includes orders from customers acquired before the period, so it overstates the return on that period's spend (new-customer ROAS in DATA-57).
     - Users: Head of Marketing (budget per channel)

@@ -64,8 +64,8 @@ final as (
     select
         keys.date,
         keys.channel,
-        round(coalesce(spend.spend_usd, 0), 2) as spend_usd,
-        round(coalesce(revenue.net_revenue, 0), 2) as net_revenue,
+        coalesce(spend.spend_usd, 0) as spend_usd,
+        coalesce(revenue.net_revenue, 0) as net_revenue,
         coalesce(revenue.orders, 0) as orders,
         coalesce(new_customers.new_customers, 0) as new_customers
     from keys
