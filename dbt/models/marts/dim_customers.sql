@@ -11,7 +11,7 @@ first_orders as (
         user_id,
         min(order_date) as first_order_date
     from orders
-    where order_status != 'cancelled'
+    where order_status is distinct from 'cancelled'
     group by user_id
 ),
 
