@@ -17,7 +17,7 @@ models:
         data_tests:
           - relationships:
               arguments:
-                to: ref('stg_thelook__users')
+                to: ref('dim_customers')
                 field: user_id
       - name: order_status
         description: >
@@ -104,3 +104,41 @@ models:
         description: Spend converted to USD (spend ÷ rate), at full precision. Sum this column for total spend.
         data_tests:
           - not_null
+
+  - name: dim_customers
+    description: >
+      One row per customer of the TheLook online store, including customers who
+      never ordered. Use it to slice orders and spend by the channel that brought the
+      customer (first-touch attribution) and to find new customers. Contains no
+      personal data.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "first_order_date is null or first_order_date >= date(signed_up_at)"
+          config:
+            severity: warn
+    columns:
+      - name: user_id
+        description: Primary key of the customer.
+        data_tests:
+          - unique
+          - not_null
+      - name: channel
+        description: >
+          Channel that brought the customer to sign up (search, organic, facebook, email,
+          display). Revenue is attributed to this channel for all of the customer's orders.
+          The paid channels must match fct_ad_spend.channel for the marketing join.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['search', 'organic', 'facebook', 'email', 'display']
+              config:
+                severity: warn
+      - name: signed_up_at
+        description: When the customer signed up (UTC).
+      - name: first_order_date
+        description: >
+          Date of the customer's first order that was not cancelled (UTC). Empty if the
+          customer never placed such an order. A customer counts as new in the month of
+          this date.
