@@ -74,19 +74,20 @@ Also used by Sales: fct_order_items (see Operations) for revenue, margin and ret
 
 2. Mart: mart_marketing_performance
     - Inputs: fct_ad_spend, fct_orders, dim_customers (sign-up channel, first order date)
-    - Grain: one row per channel per month (channel × month)
-    - Primary key: channel + month (tested with dbt_utils.unique_combination_of_columns)
-    - Dimensions: month, channel (includes organic, which has revenue but no spend)
-    - Measures:
-        - spend_usd: ad spend in USD in that month (0 for organic)
-        - net_revenue: net revenue of orders placed that month by customers who signed up through the channel
-        - orders: number of those orders
-        - new_customers: customers whose first order was in that month
-    - KPIs from the measures:
+    - Grain: one row per day per channel (date × channel), for the days that have ad spend data
+    - Primary key: date + channel (tested with dbt_utils.unique_combination_of_columns)
+    - Dimensions: date, channel (includes organic, which has revenue but no spend)
+    - Measures (all additive, so Looker can roll them up to any period):
+        - spend_usd: ad spend in USD that day (0 for organic)
+        - net_revenue: net revenue of orders placed that day by customers who signed up through the channel
+        - orders: number of those orders (cancelled orders excluded)
+        - new_customers: customers whose first order was that day
+    - KPIs, calculated in Looker from the sums (never stored or averaged per day):
         - Ad spend = sum(spend_usd)
         - ROAS = sum(net_revenue) ÷ sum(spend_usd) (empty for organic)
         - CAC = sum(spend_usd) ÷ sum(new_customers) (empty for organic)
         - New customers = sum(new_customers)
+    - Limitation: calendar ROAS. Revenue includes orders from customers acquired before the period, so it overstates the return on that period's spend (new-customer ROAS in DATA-57).
     - Users: Head of Marketing (budget per channel)
     - Refresh: daily after fct_ad_spend, fct_orders and dim_customers, full rebuild as a table
 
