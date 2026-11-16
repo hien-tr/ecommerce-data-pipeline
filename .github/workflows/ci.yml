@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: dbt
+    steps:
+    - name: Check out the code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        cache: pip
+
+    - name: Install dependencies
+      run: pip install -r ../requirements.txt
+
+    - name: Write the service account key to a temporary file
+      env:
+        KEYFILE_JSON: ${{ secrets.DBT_CI_KEYFILE_JSON }}
+      run: |
+        printf '%s' "$KEYFILE_JSON" > "$RUNNER_TEMP/dbt-ci.json"
+        echo "DBT_GOOGLE_KEYFILE=$RUNNER_TEMP/dbt-ci.json" >> "$GITHUB_ENV"
+
+    - name: Install dbt packages
+      run: dbt deps
+
+    - name: Build and test into dbt_ci
+      run: dbt build --target ci
+
+
