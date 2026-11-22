@@ -35,7 +35,7 @@ revenue as (
         count(orders.order_id) as orders
     from orders
     inner join customers
-        on customers.user_id = orders.user_id
+        on orders.user_id = customers.user_id
     where orders.order_status is distinct from 'cancelled'
     group by 1, 2
 ),
@@ -53,11 +53,20 @@ new_customers as (
 -- Every day and channel that appears on any side, so organic (revenue, no spend)
 -- and days with spend but no orders are both kept.
 keys as (
-    select date, channel from spend
+    select
+        date,
+        channel
+    from spend
     union distinct
-    select date, channel from revenue
+    select
+        date,
+        channel
+    from revenue
     union distinct
-    select date, channel from new_customers
+    select
+        date,
+        channel
+    from new_customers
 ),
 
 final as (
@@ -71,14 +80,14 @@ final as (
     from keys
     cross join date_range
     left join spend
-        on spend.date = keys.date
-        and spend.channel = keys.channel
+        on keys.date = spend.date
+        and keys.channel = spend.channel
     left join revenue
-        on revenue.date = keys.date
-        and revenue.channel = keys.channel
+        on keys.date = revenue.date
+        and keys.channel = revenue.channel
     left join new_customers
-        on new_customers.date = keys.date
-        and new_customers.channel = keys.channel
+        on keys.date = new_customers.date
+        and keys.channel = new_customers.channel
     where keys.date between date_range.first_date and date_range.last_date
 )
 

@@ -14,7 +14,9 @@ calendar as (
 ),
 
 currencies as (
-    select distinct base_currency, currency
+    select distinct
+        base_currency,
+        currency
     from rates
 ),
 
@@ -35,8 +37,8 @@ joined as (
         rates.rate as published_rate
     from spine
     left join rates
-        on rates.rate_date = spine.calendar_date
-        and rates.currency = spine.currency
+        on spine.calendar_date = rates.rate_date
+        and spine.currency = rates.currency
 ),
 
 filled as (
