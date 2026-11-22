@@ -23,7 +23,7 @@ final as (
         first_orders.first_order_date
     from users
     left join first_orders
-        on first_orders.user_id = users.user_id
+        on users.user_id = first_orders.user_id
 )
 
 select * from final

@@ -1,8 +1,10 @@
 """Load daily USD exchange rates from the Frankfurter API into BigQuery raw.fx_rates."""
 
-import requests, os
+import os
+from datetime import UTC, datetime
+
+import requests
 from google.cloud import bigquery
-from datetime import datetime, timezone
 
 # Starts a month before the ad spend (2024-01-01), so the first spend days can carry
 # forward an earlier rate (1 January is an ECB holiday).
@@ -13,6 +15,7 @@ KEY_FILE = os.environ.get("DBT_GOOGLE_KEYFILE", "D:/secrets/dbt-runner.json")
 PROJECT = "ecommerce-data-pipeline-511223"
 TABLE_ID = f"{PROJECT}.raw.fx_rates"
 
+
 def extract(start_date, currencies):
     response = requests.get(
         f"{API_URL}/{start_date}..",
@@ -22,46 +25,52 @@ def extract(start_date, currencies):
     response.raise_for_status()
     return response.json()
 
+
 def to_rows(data, loaded_at):
     # The API has no rates on weekends and ECB holidays; gaps are filled in dbt, not here.
     rows = []
     for rate_date, currencies in data["rates"].items():
         for currency, rate in currencies.items():
-            rows.append({
-                "rate_date": rate_date,
-                "base_currency": data["base"],
-                "currency": currency,
-                "rate": rate,
-                "loaded_at": loaded_at
-            })
+            rows.append(
+                {
+                    "rate_date": rate_date,
+                    "base_currency": data["base"],
+                    "currency": currency,
+                    "rate": rate,
+                    "loaded_at": loaded_at,
+                }
+            )
     return rows
 
+
 def load(rows):
-    client = bigquery.Client.from_service_account_json( KEY_FILE, project = PROJECT)
+    client = bigquery.Client.from_service_account_json(KEY_FILE, project=PROJECT)
     job_config = bigquery.LoadJobConfig(
-    schema = [
-        bigquery.SchemaField("rate_date", "DATE"),
-        bigquery.SchemaField("base_currency", "STRING"),
-        bigquery.SchemaField("currency", "STRING"),
-        bigquery.SchemaField("rate", "FLOAT64"),
-        bigquery.SchemaField("loaded_at", "TIMESTAMP")
-    ],
-    # Full refresh: the table is small, so reruns replace it (no duplicates).
-    write_disposition="WRITE_TRUNCATE"
+        schema=[
+            bigquery.SchemaField("rate_date", "DATE"),
+            bigquery.SchemaField("base_currency", "STRING"),
+            bigquery.SchemaField("currency", "STRING"),
+            bigquery.SchemaField("rate", "FLOAT64"),
+            bigquery.SchemaField("loaded_at", "TIMESTAMP"),
+        ],
+        # Full refresh: the table is small, so reruns replace it (no duplicates).
+        write_disposition="WRITE_TRUNCATE",
     )
-    job = client.load_table_from_json(rows, TABLE_ID,job_config=job_config)
+    job = client.load_table_from_json(rows, TABLE_ID, job_config=job_config)
     job.result()
     return job.output_rows
 
+
 def main():
-    data = extract(START_DATE,CURRENCIES)
-    loaded_at = datetime.now(timezone.utc).isoformat()
+    data = extract(START_DATE, CURRENCIES)
+    loaded_at = datetime.now(UTC).isoformat()
     rows = to_rows(data, loaded_at)
     # WRITE_TRUNCATE would empty the table, so stop before loading.
     if not rows:
         raise RuntimeError("No rates returned from the API; table left unchanged.")
     loaded = load(rows)
     print(f"Loaded {loaded} rows into {TABLE_ID}")
+
 
 if __name__ == "__main__":
     main()

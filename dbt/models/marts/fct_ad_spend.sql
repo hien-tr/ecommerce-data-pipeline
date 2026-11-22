@@ -17,8 +17,8 @@ final as (
         {{ convert_to_usd('ad_spend.spend', 'fx_rates.rate') }} as spend_usd
     from ad_spend
     left join fx_rates
-        on fx_rates.rate_date = ad_spend.spend_date
-        and fx_rates.currency = ad_spend.currency
+        on ad_spend.spend_date = fx_rates.rate_date
+        and ad_spend.currency = fx_rates.currency
 )
 
 select * from final

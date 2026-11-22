@@ -44,5 +44,30 @@ jobs:
 
     - name: Build and test into dbt_ci
       run: dbt build --target ci
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install lint tools
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint SQL
+        run: sqlfluff lint dbt/models dbt/macros
+
+      - name: Lint Python
+        run: ruff check ingestion
+
+      - name: Check Python formatting
+        run: ruff format --check ingestion
 
 

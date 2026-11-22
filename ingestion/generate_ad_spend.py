@@ -2,7 +2,7 @@
 
 import os
 import random
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from google.cloud import bigquery
 
@@ -52,7 +52,7 @@ def generate_rows(loaded_at):
     random.seed(SEED)
     rows = []
     # UTC, the same clock BigQuery uses, so both sides agree on "yesterday".
-    end_date = datetime.now(timezone.utc).date() - timedelta(days=1)
+    end_date = datetime.now(UTC).date() - timedelta(days=1)
     for spend_date in all_dates(START_DATE, end_date):
         for channel, currency in CHANNELS.items():
             noise = random.uniform(0.8, 1.2)
@@ -60,13 +60,15 @@ def generate_rows(loaded_at):
             years_since_start = (spend_date - START_DATE).days / 365
             growth = (1 + YEARLY_GROWTH) ** years_since_start
             spend = DAILY_BUDGET[channel] * weekday * growth * noise
-            rows.append({
-                "spend_date": spend_date.isoformat(),
-                "channel": channel,
-                "currency": currency,
-                "spend": round(spend, 2),
-                "loaded_at": loaded_at,
-            })
+            rows.append(
+                {
+                    "spend_date": spend_date.isoformat(),
+                    "channel": channel,
+                    "currency": currency,
+                    "spend": round(spend, 2),
+                    "loaded_at": loaded_at,
+                }
+            )
     return rows
 
 
@@ -90,7 +92,7 @@ def load(rows):
 
 
 def main():
-    loaded_at = datetime.now(timezone.utc).isoformat()
+    loaded_at = datetime.now(UTC).isoformat()
     rows = generate_rows(loaded_at)
     if not rows:
         raise RuntimeError("No rows generated; table left unchanged.")
@@ -100,4 +102,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
