@@ -79,7 +79,7 @@ flowchart LR
 
 ## Data model
 
-13 dbt models and 65 data tests.
+14 dbt models, 1 snapshot and 68 data tests.
 
 | Mart | Type | Grain | Used by |
 |---|---|---|---|
@@ -87,6 +87,7 @@ flowchart LR
 | `fct_ad_spend` | fact | one row per day and paid channel | Marketing |
 | `dim_customers` | dimension | one row per customer | all domains |
 | `mart_marketing_performance` | aggregated mart | one row per day and channel | Marketing |
+| `snap_users` | snapshot (SCD type 2) | one row per user per version | Customers |
 
 Further marts in the design: `fct_order_items` (operations), `fct_sessions` (website), `fct_inventory_items` (inventory), `dim_products` and `dim_distribution_centers`.
 
@@ -99,6 +100,7 @@ Further marts in the design: `fct_order_items` (operations), `fct_sessions` (web
 - **Marts store measures, not ratios.** ROAS, CAC, average order value and margin % are calculated from summed measures, so they're correct for any period. Averaging daily ratios gives wrong totals.
 - **Aggregate before joining facts with different grains.** Spend and revenue are summed per day and channel separately, then joined, so nothing is counted twice.
 - **Personal data stays in staging.** Columns such as names and emails are tagged `contains_pii` and never reach the marts.
+- **User history with a snapshot (SCD type 2).** `snap_users` keeps every change to a user's location and acquisition channel. TheLook has no `updated_at` column, so the snapshot uses the `check` strategy (comparing values); personal data is excluded so no history of it is kept.
 
 **Money and dates**
 - **Currency conversion in one macro.** `convert_to_usd` uses `safe_divide` and exact `NUMERIC` arithmetic; rounding happens only for display, so totals don't drift.

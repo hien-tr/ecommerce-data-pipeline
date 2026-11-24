@@ -67,3 +67,12 @@ models:
                 inclusive: false
       - name: is_carried_forward
         description: True when no rate was published that day and the previous published rate is used.
+
+  - name: int_users_tracked
+    description: >
+      Ephemeral filter for the snap_users snapshot: the user attributes whose history is tracked
+      (location and acquisition channel). Personal data (names, email, address, coordinates) is
+      left out on purpose, so the snapshot never keeps a history of it.
+    columns:
+      - name: user_id
+        description: User id. Unique here; becomes the snapshot's unique_key.

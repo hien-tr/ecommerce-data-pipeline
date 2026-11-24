@@ -1,0 +1,27 @@
+snapshots:
+  - name: snap_users
+    relation: ref('int_users_tracked')
+    description: >
+      History of user location and acquisition channel (SCD type 2).
+      One row per user per version; dbt_valid_to is null for the current version.
+      TheLook has no updated_at column, so changes are detected by comparing values (check strategy).
+    config:
+      unique_key: user_id
+      strategy: check
+      check_cols: [country, state, city, postal_code, traffic_source]
+    columns:
+      - name: user_id
+        description: "User id. Not unique here: one row per user per version."
+        data_tests:
+          - not_null
+          - unique:
+              config:
+                where: "dbt_valid_to is null"
+      - name: dbt_valid_from
+        description: When this version became current.
+      - name: dbt_valid_to
+        description: When this version was replaced; null for the current version.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [user_id, dbt_valid_from]
